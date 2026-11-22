@@ -26,6 +26,13 @@
         h2 { margin: 14px 0 8px; font-size: 21px; }
         .meta { font-size: 14px; }
         .empty { grid-column: 1 / -1; color: #a1a1aa; padding: 30px 0; }
+        .panel { border: 1px solid #27272a; border-radius: 14px; background: #111113; padding: 20px; margin: 24px 0; }
+        .panel h2 { margin-top: 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .form-grid input { min-width: 0; }
+        .actions { display: flex; gap: 8px; margin-top: 14px; }
+        .secondary { background: #27272a; }
+        @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -35,6 +42,19 @@
             <h1>Temukan media favoritmu di <span>FlipPlay.</span></h1>
             <p>Kelola film, series, game, dan musik dalam satu koleksi. Data halaman ini diambil langsung dari Laravel REST API.</p>
             <div class="toolbar"><input id="search" placeholder="Cari judul media..."><button id="searchButton">Cari</button></div>
+        </section>
+        <section class="panel">
+            <h2 id="formTitle">Tambah media</h2>
+            <form id="mediaForm">
+                <div class="form-grid"><input id="title" placeholder="Judul" required><input id="type" placeholder="Jenis: film/series" required><input id="genre" placeholder="Genre" required></div>
+                <div class="actions"><button type="submit">Simpan media</button><button type="button" class="secondary" id="cancelEdit" hidden>Batal edit</button></div>
+            </form>
+        </section>
+        <section class="panel">
+            <h2>Koleksi pengguna</h2>
+            <div class="toolbar"><input id="userId" type="number" min="1" placeholder="ID pengguna"><button id="collectionButton">Lihat koleksi</button></div>
+            <div id="collectionStatus" class="status"></div>
+            <div id="collectionGrid" class="grid"></div>
         </section>
         <div id="status" class="status">Memuat katalog...</div>
         <section id="mediaGrid" class="grid"></section>
@@ -51,11 +71,24 @@
                 const result = await response.json();
                 const items = result.data ?? [];
                 status.textContent = `${items.length} media ditemukan`;
-                grid.innerHTML = items.length ? items.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre} · ${media.release_year ?? 'Tahun tidak tersedia'}</div></article>`).join('') : '<div class="empty">Belum ada media yang cocok.</div>';
+                grid.innerHTML = items.length ? items.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div><div class="actions"><button onclick="editMedia(${media.id}, '${media.title.replace(/'/g, "\\'")}', '${media.type}', '${media.genre}')">Edit</button><button class="secondary" onclick="deleteMedia(${media.id})">Hapus</button><button class="secondary" onclick="addToCollection(${media.id})">+ Koleksi</button></div></article>`).join('') : '<div class="empty">Belum ada media yang cocok.</div>';
             } catch (error) { status.textContent = 'Tidak dapat memuat katalog. Jalankan migration dan seeder.'; }
         }
         document.getElementById('searchButton').addEventListener('click', loadMedia);
         document.getElementById('search').addEventListener('keydown', event => { if (event.key === 'Enter') loadMedia(); });
+        let editingId = null;
+        document.getElementById('mediaForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const payload = { title: title.value, type: type.value, genre: genre.value };
+            const response = await fetch(editingId ? `/api/media/${editingId}` : '/api/media', { method: editingId ? 'PATCH' : 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify(payload) });
+            if (!response.ok) { alert('Data tidak valid atau judul sudah digunakan.'); return; }
+            editingId = null; event.target.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; loadMedia();
+        });
+        window.editMedia = (id, currentTitle, currentType, currentGenre) => { editingId = id; title.value = currentTitle; type.value = currentType; genre.value = currentGenre; formTitle.textContent = 'Edit media'; cancelEdit.hidden = false; window.scrollTo({top: 0, behavior: 'smooth'}); };
+        window.deleteMedia = async id => { if (!confirm('Hapus media ini?')) return; await fetch(`/api/media/${id}`, {method: 'DELETE', headers: {'Accept': 'application/json'}}); loadMedia(); };
+        window.addToCollection = async mediaId => { const id = userId.value; if (!id) { alert('Isi ID pengguna terlebih dahulu.'); return; } const response = await fetch(`/api/users/${id}/collection`, {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify({media_id: mediaId})}); alert(response.status === 409 ? 'Media sudah ada di koleksi.' : response.ok ? 'Media ditambahkan ke koleksi.' : 'User atau media tidak ditemukan.'); };
+        cancelEdit.addEventListener('click', () => { editingId = null; mediaForm.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; });
+        collectionButton.addEventListener('click', async () => { const id = userId.value; if (!id) return; const response = await fetch(`/api/users/${id}/collection`); const result = await response.json(); collectionStatus.textContent = response.ok ? `${result.data.length} media dalam koleksi` : 'User tidak ditemukan'; collectionGrid.innerHTML = response.ok ? result.data.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div></article>`).join('') : ''; });
         loadMedia();
     </script>
 </body>
