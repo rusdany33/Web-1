@@ -26,6 +26,8 @@
         h2 { margin: 14px 0 8px; font-size: 21px; }
         .meta { font-size: 14px; }
         .empty { grid-column: 1 / -1; color: #a1a1aa; padding: 30px 0; }
+        .poster { width: 100%; height: 260px; object-fit: cover; border-radius: 10px; background: #27272a; }
+        .summary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin-top: 10px; color: #a1a1aa; font-size: 13px; line-height: 1.5; }
         .panel { border: 1px solid #27272a; border-radius: 14px; background: #111113; padding: 20px; margin: 24px 0; }
         .panel h2 { margin-top: 0; }
         .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -60,19 +62,22 @@
         <section id="mediaGrid" class="grid"></section>
     </main>
     <script>
+        function stripHtml(value) { const element = document.createElement('div'); element.innerHTML = value || ''; return element.textContent || ''; }
+        function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character])); }
         async function loadMedia() {
             const search = document.getElementById('search').value.trim();
             const status = document.getElementById('status');
             const grid = document.getElementById('mediaGrid');
             status.textContent = 'Memuat katalog...';
             try {
-                const response = await fetch('/api/media' + (search ? '?search=' + encodeURIComponent(search) : ''));
+                const endpoint = search ? `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}` : 'https://api.tvmaze.com/shows?page=0';
+                const response = await fetch(endpoint);
                 if (!response.ok) throw new Error('API error');
                 const result = await response.json();
-                const items = result.data ?? [];
+                const items = (search ? result.map(item => item.show) : result).slice(0, 18);
                 status.textContent = `${items.length} media ditemukan`;
-                grid.innerHTML = items.length ? items.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div><div class="actions"><button onclick="editMedia(${media.id}, '${media.title.replace(/'/g, "\\'")}', '${media.type}', '${media.genre}')">Edit</button><button class="secondary" onclick="deleteMedia(${media.id})">Hapus</button><button class="secondary" onclick="addToCollection(${media.id})">+ Koleksi</button></div></article>`).join('') : '<div class="empty">Belum ada media yang cocok.</div>';
-            } catch (error) { status.textContent = 'Tidak dapat memuat katalog. Jalankan migration dan seeder.'; }
+                grid.innerHTML = items.length ? items.map(media => `<article class="card"><img class="poster" src="${escapeHtml(media.image?.medium || '')}" alt="Poster ${escapeHtml(media.name)}" onerror="this.style.display='none'"><div class="type">${escapeHtml(media.type || 'show')}</div><h2>${escapeHtml(media.name)}</h2><div class="meta">${escapeHtml((media.genres || []).join(' · ') || 'Genre belum tersedia')} · ${escapeHtml(media.premiered || 'Tahun tidak tersedia')}</div><p class="summary">${escapeHtml(stripHtml(media.summary)) || 'Sinopsis belum tersedia.'}</p><div class="actions"><a href="${escapeHtml(media.url)}" target="_blank" rel="noreferrer"><button>Detail</button></a></div></article>`).join('') : '<div class="empty">Media tidak ditemukan.</div>';
+            } catch (error) { status.textContent = 'Katalog internet tidak dapat dimuat. Periksa koneksi internet.'; grid.innerHTML = ''; }
         }
         document.getElementById('searchButton').addEventListener('click', loadMedia);
         document.getElementById('search').addEventListener('keydown', event => { if (event.key === 'Enter') loadMedia(); });
