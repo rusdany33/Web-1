@@ -7,12 +7,12 @@ declare(strict_types=1);
 // [M3-INDEX-02] Autoloader sederhana: namespace FlipPlay\X\Y menjadi file src/X/Y.php.
 spl_autoload_register(static function (string $className): void {
     $prefix = 'FlipPlay\\';
-    if (!str_starts_with($className, $prefix)) {
+    if (! str_starts_with($className, $prefix)) {
         return;
     }
 
     $relativeClass = substr($className, strlen($prefix));
-    $file = __DIR__ . '/src/' . str_replace('\\', '/', $relativeClass) . '.php';
+    $file = __DIR__.'/src/'.str_replace('\\', '/', $relativeClass).'.php';
     if (is_file($file)) {
         require $file;
     }
@@ -35,19 +35,20 @@ function printMediaList(array $mediaList): void
 {
     if ($mediaList === []) {
         echo "Tidak ada media.\n";
+
         return;
     }
 
     foreach ($mediaList as $media) {
         // [M3-INDEX-04] Polymorphism: Anime dan Drama menjalankan getDetail() versinya sendiri.
-        echo '- ' . $media->getDetail() . PHP_EOL;
+        echo '- '.$media->getDetail().PHP_EOL;
     }
 }
 
 heading('FlipPlay Backend Engine - Modul 3 PHP OOP');
 
 // [M3-INDEX-05] Membuat object class Media child menggunakan constructor.
-$library = new MediaLibrary();
+$library = new MediaLibrary;
 $library->addMedia(new Anime('A-001', 'Frieren: Beyond Journey’s End', 'Fantasy', 28));
 $library->addMedia(new Anime('A-002', 'Haikyu!!', 'Sports', 85));
 $library->addMedia(new Drama('D-001', 'Hospital Playlist', 'Slice of Life', 2));
@@ -65,7 +66,7 @@ printMediaList($searchResult);
 
 heading('4. Detail Media dengan ID A-001');
 $selectedMedia = $library->findById('A-001');
-echo $selectedMedia?->getDetail() ?? "Media tidak ditemukan.";
+echo $selectedMedia?->getDetail() ?? 'Media tidak ditemukan.';
 echo PHP_EOL;
 
 heading('5. Koleksi Media Pengguna');

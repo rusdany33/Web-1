@@ -8,7 +8,9 @@ namespace Codelab\Models;
 final class Book
 {
     private string $title;
+
     private string $author;
+
     private bool $available = true;
 
     public function __construct(string $title, string $author)
@@ -35,11 +37,12 @@ final class Book
     // [M3-CODELAB-02] Method mengubah status melalui class, bukan property dari luar.
     public function borrow(): bool
     {
-        if (!$this->available) {
+        if (! $this->available) {
             return false;
         }
 
         $this->available = false;
+
         return true;
     }
 

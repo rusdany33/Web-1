@@ -8,6 +8,7 @@ namespace FlipPlay\Models;
 final class User
 {
     private string $id;
+
     private string $name;
 
     /** @var array<string, Media> */
@@ -32,6 +33,7 @@ final class User
         }
 
         $this->collection[$media->getId()] = $media;
+
         return true;
     }
 

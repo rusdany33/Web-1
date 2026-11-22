@@ -7,6 +7,7 @@ namespace Codelab\Models;
 final class Member
 {
     private string $name;
+
     private string $memberId;
 
     /** @var array<string, Book> */
@@ -25,22 +26,24 @@ final class Member
 
     public function borrowBook(Book $book): bool
     {
-        if (!$book->borrow()) {
+        if (! $book->borrow()) {
             return false;
         }
 
         $this->borrowedBooks[$book->getTitle()] = $book;
+
         return true;
     }
 
     public function returnBook(Book $book): bool
     {
-        if (!isset($this->borrowedBooks[$book->getTitle()])) {
+        if (! isset($this->borrowedBooks[$book->getTitle()])) {
             return false;
         }
 
         $book->returnBook();
         unset($this->borrowedBooks[$book->getTitle()]);
+
         return true;
     }
 }
