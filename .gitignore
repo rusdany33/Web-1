@@ -1,0 +1,9 @@
+# Dependencies can be restored with npm install.
+node_modules/
+
+# Editor and operating-system files.
+.vscode/
+.idea/
+*.log
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "scripts": {
+    "build": "tailwindcss -i ./src/main.css -o ./src/output.css",
+    "watch": "tailwindcss -i ./src/main.css -o ./src/output.css --watch",
+    "test": "node --test tests/catalog-api.test.cjs"
+  }
+}
