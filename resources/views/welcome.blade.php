@@ -3,102 +3,47 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FlipPlay</title>
+    <title>FlipPlay — Media library</title>
     <style>
-        :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
-        * { box-sizing: border-box; }
-        body { margin: 0; min-height: 100vh; background: #09090b; color: #f4f4f5; }
-        header { border-bottom: 1px solid #27272a; background: #111113; }
-        .nav, main { width: min(1100px, calc(100% - 40px)); margin: auto; }
-        .nav { display: flex; justify-content: space-between; padding: 22px 0; }
-        .brand { color: #fb3b30; font-size: 25px; font-weight: 800; }
-        .badge, .meta, .status, .hero p { color: #a1a1aa; }
-        .hero { padding: 64px 0 34px; }
-        h1 { max-width: 650px; margin: 0 0 14px; font-size: clamp(38px, 7vw, 70px); line-height: .98; letter-spacing: -.06em; }
-        h1 span, .type { color: #fb3b30; }
-        .hero p { max-width: 600px; font-size: 17px; line-height: 1.6; }
-        .toolbar { display: flex; gap: 12px; margin: 28px 0; }
-        input { flex: 1; border: 1px solid #3f3f46; border-radius: 10px; background: #18181b; color: white; padding: 13px 15px; outline: none; }
-        button { border: 0; border-radius: 10px; background: #fb3b30; color: white; padding: 0 20px; font-weight: 700; cursor: pointer; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding-bottom: 60px; }
-        .card { border: 1px solid #27272a; border-radius: 14px; background: #111113; padding: 20px; min-height: 170px; }
-        .type { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
-        h2 { margin: 14px 0 8px; font-size: 21px; }
-        .meta { font-size: 14px; }
-        .empty { grid-column: 1 / -1; color: #a1a1aa; padding: 30px 0; }
-        .poster { width: 100%; height: 260px; object-fit: cover; border-radius: 10px; background: #27272a; }
-        .summary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin-top: 10px; color: #a1a1aa; font-size: 13px; line-height: 1.5; }
-        .panel { border: 1px solid #27272a; border-radius: 14px; background: #111113; padding: 20px; margin: 24px 0; }
-        .panel h2 { margin-top: 0; }
-        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .form-grid input { min-width: 0; }
-        .actions { display: flex; gap: 8px; margin-top: 14px; }
-        .secondary { background: #27272a; }
-        @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+        :root { --bg:#0c0d10; --surface:#14161b; --surface-2:#1b1e25; --line:#292d36; --text:#f5f7fa; --muted:#8f97a6; --accent:#ff4d3d; --accent-2:#ff8b45; color-scheme:dark; font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif; }
+        * { box-sizing:border-box; } body { margin:0; min-height:100vh; background:radial-gradient(circle at 80% -10%,#40201b 0,transparent 30%),var(--bg); color:var(--text); } button,input { font:inherit; } button { cursor:pointer; }
+        .shell { display:grid; grid-template-columns:240px 1fr; min-height:100vh; } aside { border-right:1px solid var(--line); background:#101216; padding:28px 18px; } .logo { padding:0 14px 40px; font-size:24px; font-weight:900; letter-spacing:-.06em; } .logo b { color:var(--accent); }
+        .nav-label { margin:20px 14px 8px; color:#626a78; font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; } .nav-link { display:block; margin:4px 0; padding:11px 14px; border-radius:9px; color:var(--muted); text-decoration:none; font-size:14px; } .nav-link.active,.nav-link:hover { background:var(--surface-2); color:var(--text); } .nav-link.active { box-shadow:inset 3px 0 var(--accent); }
+        main { width:min(1300px,100%); padding:30px clamp(24px,5vw,64px) 60px; } .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; } .eyebrow { color:var(--accent); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; } h1 { margin:7px 0 0; font-size:clamp(27px,4vw,42px); letter-spacing:-.055em; } .user-chip { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; } .avatar { display:grid; width:34px; height:34px; place-items:center; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; font-weight:800; }
+        .hero { display:flex; align-items:end; justify-content:space-between; gap:30px; margin:46px 0 28px; } .hero p { max-width:500px; margin:0; color:var(--muted); line-height:1.6; } .primary { border:0; border-radius:8px; background:var(--accent); color:white; padding:12px 18px; font-weight:750; transition:.2s; } .primary:hover { background:#ff6b5c; transform:translateY(-1px); } .ghost { border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--text); padding:10px 14px; }
+        .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:30px; } .stat,.panel { border:1px solid var(--line); border-radius:12px; background:rgba(20,22,27,.86); } .stat { padding:18px 20px; } .stat small { color:var(--muted); } .stat strong { display:block; margin-top:8px; font-size:28px; letter-spacing:-.04em; }
+        .section-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:30px 0 15px; } h2 { margin:0; font-size:20px; letter-spacing:-.03em; } .toolbar { display:flex; gap:9px; } input { width:100%; border:1px solid var(--line); border-radius:8px; outline:0; background:var(--surface); color:var(--text); padding:11px 13px; } input:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff4d3d22; } .search { max-width:320px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:15px; } .card { overflow:hidden; border:1px solid var(--line); border-radius:12px; background:var(--surface); transition:.2s; } .card:hover { border-color:#555d6b; transform:translateY(-3px); } .cover { display:grid; height:116px; place-items:center; background:linear-gradient(135deg,#252b38,#3b2023); color:#ffffff22; font-size:54px; font-weight:900; } .card-body { padding:17px; } .tag { color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; } .card h3 { overflow:hidden; margin:8px 0 5px; text-overflow:ellipsis; white-space:nowrap; font-size:17px; } .meta,.empty,.hint { color:var(--muted); font-size:13px; } .card-actions { display:flex; gap:7px; margin-top:16px; } .card-actions button { flex:1; padding:8px 7px; font-size:12px; } .danger { border:0; border-radius:7px; background:#4a2225; color:#ffaaa4; }
+        .panel { margin-top:30px; padding:20px; } .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; } .form-grid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px; } .form-actions { display:flex; gap:8px; margin-top:13px; } .empty { grid-column:1/-1; padding:35px; text-align:center; border:1px dashed var(--line); border-radius:10px; }
+        dialog { width:min(500px,calc(100% - 30px)); border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--text); padding:24px; } dialog::backdrop { background:#000b; backdrop-filter:blur(4px); } dialog h2 { margin-bottom:18px; } .dialog-actions { display:flex; justify-content:end; gap:8px; margin-top:20px; }
+        .toast { position:fixed; right:24px; bottom:24px; z-index:5; border:1px solid var(--line); border-radius:9px; background:#20242c; padding:13px 16px; box-shadow:0 15px 35px #0008; } .hidden { display:none!important; }
+        @media(max-width:800px) { .shell { display:block; } aside { display:flex; align-items:center; justify-content:space-between; padding:15px 20px; } .logo { padding:0; } aside .nav-label,.nav-link:not(.active) { display:none; } main { padding:25px 20px 50px; } .hero { display:block; margin-top:35px; } .hero .primary { margin-top:20px; } .stats { grid-template-columns:1fr; } .form-grid { grid-template-columns:1fr; } .topbar { align-items:flex-start; } }
     </style>
 </head>
 <body>
-    <header><div class="nav"><div class="brand">FlipPlay</div><div class="badge">Media collection API</div></div></header>
+<div class="shell">
+    <aside><div class="logo">Flip<b>Play</b></div><nav><div class="nav-label">Workspace</div><a class="nav-link active" href="#catalog">Overview</a><a class="nav-link" href="#catalog">Media catalog</a><a class="nav-link" href="#collection">My collection</a><div class="nav-label">System</div><a class="nav-link" href="/api/media" target="_blank">API endpoint ↗</a></nav></aside>
     <main>
-        <section class="hero">
-            <h1>Temukan media favoritmu di <span>FlipPlay.</span></h1>
-            <p>Cari media dari TVMaze, simpan ke katalog FlipPlay melalui API Laravel, lalu kelola dengan CRUD dan koleksi pengguna.</p>
-            <div class="toolbar"><input id="search" placeholder="Cari judul media..."><button id="searchButton">Cari</button></div>
-        </section>
-        <section class="panel">
-            <h2 id="formTitle">Tambah media</h2>
-            <form id="mediaForm">
-                <div class="form-grid"><input id="title" placeholder="Judul" required><input id="type" placeholder="Jenis: film/series" required><input id="genre" placeholder="Genre" required></div>
-                <div class="actions"><button type="submit">Simpan media</button><button type="button" class="secondary" id="cancelEdit" hidden>Batal edit</button></div>
-            </form>
-        </section>
-        <section class="panel">
-            <h2>Koleksi pengguna</h2>
-            <div class="toolbar"><input id="userId" type="number" min="1" placeholder="ID pengguna"><button id="collectionButton">Lihat koleksi</button></div>
-            <div id="collectionStatus" class="status"></div>
-            <div id="collectionGrid" class="grid"></div>
-        </section>
-        <div id="status" class="status">Memuat katalog...</div>
-        <section id="mediaGrid" class="grid"></section>
-        <section class="panel"><h2>Media tersimpan di FlipPlay API</h2><div id="localStatus" class="status"></div><section id="localGrid" class="grid"></section></section>
+        <div class="topbar"><div><div class="eyebrow">Media library</div><h1>Good evening, welcome back.</h1></div><div class="user-chip"><span id="activeUserLabel">Guest user</span><span class="avatar">G</span></div></div>
+        <section class="hero"><p>Kelola katalog media dan koleksi personalmu dari satu ruang kerja yang sederhana.</p><button class="primary" id="openCreate">+ Tambah media</button></section>
+        <section class="stats"><div class="stat"><small>Total media</small><strong id="totalMedia">—</strong></div><div class="stat"><small>Media di koleksi</small><strong id="totalCollection">—</strong></div><div class="stat"><small>API status</small><strong id="apiStatus">Online</strong></div></section>
+        <section id="catalog"><div class="section-head"><h2>Media catalog</h2><div class="toolbar"><input class="search" id="search" placeholder="Search title..."><button class="ghost" id="searchButton">Search</button></div></div><div id="catalogGrid" class="grid"></div></section>
+        <section id="collection" class="panel"><div class="panel-head"><div><h2>My collection</h2><div class="hint">Masukkan ID user untuk melihat koleksi.</div></div><div class="toolbar"><input id="userId" type="number" min="1" placeholder="User ID"><button class="ghost" id="collectionButton">Load</button></div></div><div id="collectionGrid" class="grid"></div></section>
     </main>
-    <script>
-        function stripHtml(value) { const element = document.createElement('div'); element.innerHTML = value || ''; return element.textContent || ''; }
-        function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character])); }
-        async function loadMedia() {
-            const search = document.getElementById('search').value.trim();
-            const status = document.getElementById('status');
-            const grid = document.getElementById('mediaGrid');
-            status.textContent = 'Memuat katalog...';
-            try {
-                const endpoint = search ? `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}` : 'https://api.tvmaze.com/shows?page=0';
-                const response = await fetch(endpoint);
-                if (!response.ok) throw new Error('API error');
-                const result = await response.json();
-                const items = (search ? result.map(item => item.show) : result).slice(0, 18);
-                status.textContent = `${items.length} media ditemukan`;
-                grid.innerHTML = items.length ? items.map(media => `<article class="card"><img class="poster" src="${escapeHtml(media.image?.medium || '')}" alt="Poster ${escapeHtml(media.name)}" onerror="this.style.display='none'"><div class="type">${escapeHtml(media.type || 'show')}</div><h2>${escapeHtml(media.name)}</h2><div class="meta">${escapeHtml((media.genres || []).join(' · ') || 'Genre belum tersedia')} · ${escapeHtml(media.premiered || 'Tahun tidak tersedia')}</div><p class="summary">${escapeHtml(stripHtml(media.summary)) || 'Sinopsis belum tersedia.'}</p><div class="actions"><button onclick="saveExternalMedia('${encodeURIComponent(JSON.stringify({title: media.name, type: media.type || 'show', genre: (media.genres || [])[0] || 'other', release_year: media.premiered ? Number(media.premiered.slice(0, 4)) : null, description: stripHtml(media.summary)}))}')">Simpan ke FlipPlay</button><a href="${escapeHtml(media.url)}" target="_blank" rel="noreferrer"><button class="secondary">Detail</button></a></div></article>`).join('') : '<div class="empty">Media tidak ditemukan.</div>';
-            } catch (error) { status.textContent = 'Katalog internet tidak dapat dimuat. Periksa koneksi internet.'; grid.innerHTML = ''; }
-        }
-        document.getElementById('searchButton').addEventListener('click', loadMedia);
-        document.getElementById('search').addEventListener('keydown', event => { if (event.key === 'Enter') loadMedia(); });
-        let editingId = null;
-        document.getElementById('mediaForm').addEventListener('submit', async event => {
-            event.preventDefault();
-            const payload = { title: title.value, type: type.value, genre: genre.value };
-            const response = await fetch(editingId ? `/api/media/${editingId}` : '/api/media', { method: editingId ? 'PATCH' : 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify(payload) });
-            if (!response.ok) { alert('Data tidak valid atau judul sudah digunakan.'); return; }
-            editingId = null; event.target.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; loadLocalMedia();
-        });
-        window.saveExternalMedia = async encodedMedia => { const media = JSON.parse(decodeURIComponent(encodedMedia)); const response = await fetch('/api/media', {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify(media)}); alert(response.status === 422 ? 'Media sudah tersimpan atau data tidak valid.' : response.ok ? 'Media berhasil disimpan ke API Laravel.' : 'Gagal menyimpan media.'); if (response.ok) loadLocalMedia(); };
-        async function loadLocalMedia() { const response = await fetch('/api/media'); const result = await response.json(); const items = result.data || []; localStatus.textContent = `${items.length} media tersimpan`; localGrid.innerHTML = items.length ? items.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div><div class="actions"><button onclick="editMedia(${media.id}, '${media.title.replace(/'/g, "\\'")}', '${media.type}', '${media.genre}')">Edit</button><button class="secondary" onclick="deleteMedia(${media.id})">Hapus</button><button class="secondary" onclick="addToCollection(${media.id})">+ Koleksi</button></div></article>`).join('') : '<div class="empty">Simpan media dari deksripsi TVMaze di atas.</div>'; }
-        window.editMedia = (id, currentTitle, currentType, currentGenre) => { editingId = id; title.value = currentTitle; type.value = currentType; genre.value = currentGenre; formTitle.textContent = 'Edit media'; cancelEdit.hidden = false; window.scrollTo({top: 0, behavior: 'smooth'}); };
-        window.deleteMedia = async id => { if (!confirm('Hapus media ini dari API Laravel?')) return; await fetch(`/api/media/${id}`, {method: 'DELETE', headers: {'Accept': 'application/json'}}); loadLocalMedia(); };
-        window.addToCollection = async mediaId => { const id = userId.value; if (!id) { alert('Isi ID pengguna terlebih dahulu.'); return; } const response = await fetch(`/api/users/${id}/collection`, {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify({media_id: mediaId})}); alert(response.status === 409 ? 'Media sudah ada di koleksi.' : response.ok ? 'Media ditambahkan ke koleksi.' : 'User atau media tidak ditemukan.'); };
-        cancelEdit.addEventListener('click', () => { editingId = null; mediaForm.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; });
-        collectionButton.addEventListener('click', async () => { const id = userId.value; if (!id) return; const response = await fetch(`/api/users/${id}/collection`); const result = await response.json(); collectionStatus.textContent = response.ok ? `${result.data.length} media dalam koleksi` : 'User tidak ditemukan'; collectionGrid.innerHTML = response.ok ? result.data.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div></article>`).join('') : ''; });
-        loadMedia();
-        loadLocalMedia();
-    </script>
+</div>
+<dialog id="mediaDialog"><h2 id="dialogTitle">Tambah media</h2><form id="mediaForm"><input id="title" placeholder="Judul media" required><div class="form-grid" style="margin-top:10px"><input id="type" placeholder="Jenis" required><input id="genre" placeholder="Genre" required><input id="releaseYear" type="number" placeholder="Tahun"></div><div class="dialog-actions"><button type="button" class="ghost" id="cancelDialog">Cancel</button><button class="primary">Save media</button></div></form></dialog>
+<div id="toast" class="toast hidden"></div>
+<script>
+    const $ = id => document.getElementById(id); let editingId = null;
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+    function notify(message) { $('toast').textContent = message; $('toast').classList.remove('hidden'); setTimeout(() => $('toast').classList.add('hidden'), 2800); }
+    function card(media) { return `<article class="card"><div class="cover">${escapeHtml((media.title || 'M').charAt(0).toUpperCase())}</div><div class="card-body"><div class="tag">${escapeHtml(media.type)}</div><h3 title="${escapeHtml(media.title)}">${escapeHtml(media.title)}</h3><div class="meta">${escapeHtml(media.genre)}${media.release_year ? ` · ${media.release_year}` : ''}</div><div class="card-actions"><button class="ghost" data-edit="${media.id}">Edit</button><button class="danger" data-delete="${media.id}">Delete</button><button class="ghost" data-collect="${media.id}">+ Koleksi</button></div></div></article>`; }
+    async function loadMedia() { const query = $('search').value.trim(); const response = await fetch('/api/media' + (query ? `?search=${encodeURIComponent(query)}` : '')); const result = await response.json(); const items = result.data || []; $('totalMedia').textContent = items.length; $('catalogGrid').innerHTML = items.length ? items.map(card).join('') : '<div class="empty">Belum ada media. Tambahkan media pertama.</div>'; bindCards(); }
+    function openEditor(media = null) { editingId = media?.id || null; $('dialogTitle').textContent = editingId ? 'Edit media' : 'Tambah media'; $('title').value = media?.title || ''; $('type').value = media?.type || ''; $('genre').value = media?.genre || ''; $('releaseYear').value = media?.release_year || ''; $('mediaDialog').showModal(); }
+    async function loadCollection() { const id = $('userId').value; if (!id) return notify('Masukkan User ID terlebih dahulu.'); const response = await fetch(`/api/users/${id}/collection`); if (!response.ok) return notify('User tidak ditemukan.'); const result = await response.json(); const items = result.data || []; $('activeUserLabel').textContent = `User #${id}`; $('totalCollection').textContent = items.length; $('collectionGrid').innerHTML = items.length ? items.map(card).join('') : '<div class="empty">Koleksi masih kosong.</div>'; bindCards(); }
+    function bindCards() { document.querySelectorAll('[data-edit]').forEach(button => button.onclick = async () => { const response = await fetch(`/api/media/${button.dataset.edit}`); openEditor((await response.json()).data); }); document.querySelectorAll('[data-delete]').forEach(button => button.onclick = async () => { if (!confirm('Hapus media ini?')) return; await fetch(`/api/media/${button.dataset.delete}`, {method:'DELETE', headers:{Accept:'application/json'}}); notify('Media berhasil dihapus.'); loadMedia(); }); document.querySelectorAll('[data-collect]').forEach(button => button.onclick = async () => { const id = $('userId').value; if (!id) return notify('Masukkan User ID di panel koleksi.'); const response = await fetch(`/api/users/${id}/collection`, {method:'POST', headers:{'Content-Type':'application/json',Accept:'application/json'}, body:JSON.stringify({media_id:button.dataset.collect})}); notify(response.status === 409 ? 'Media sudah ada di koleksi.' : response.ok ? 'Media masuk ke koleksi.' : 'Gagal menambahkan media.'); }); }
+    $('mediaForm').onsubmit = async event => { event.preventDefault(); const payload = {title:$('title').value,type:$('type').value,genre:$('genre').value,release_year:$('releaseYear').value || null}; const response = await fetch(editingId ? `/api/media/${editingId}` : '/api/media', {method:editingId?'PATCH':'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(payload)}); if (!response.ok) return notify('Data tidak valid atau judul sudah digunakan.'); $('mediaDialog').close(); notify(editingId ? 'Media diperbarui.' : 'Media ditambahkan.'); loadMedia(); };
+    $('openCreate').onclick = () => openEditor(); $('cancelDialog').onclick = () => $('mediaDialog').close(); $('searchButton').onclick = loadMedia; $('search').onkeydown = event => { if (event.key === 'Enter') loadMedia(); }; $('collectionButton').onclick = loadCollection; loadMedia();
+</script>
 </body>
 </html>
