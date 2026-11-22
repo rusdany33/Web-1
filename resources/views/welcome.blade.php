@@ -42,7 +42,7 @@
     <main>
         <section class="hero">
             <h1>Temukan media favoritmu di <span>FlipPlay.</span></h1>
-            <p>Kelola film, series, game, dan musik dalam satu koleksi. Data halaman ini diambil langsung dari Laravel REST API.</p>
+            <p>Cari media dari TVMaze, simpan ke katalog FlipPlay melalui API Laravel, lalu kelola dengan CRUD dan koleksi pengguna.</p>
             <div class="toolbar"><input id="search" placeholder="Cari judul media..."><button id="searchButton">Cari</button></div>
         </section>
         <section class="panel">
@@ -60,6 +60,7 @@
         </section>
         <div id="status" class="status">Memuat katalog...</div>
         <section id="mediaGrid" class="grid"></section>
+        <section class="panel"><h2>Media tersimpan di FlipPlay API</h2><div id="localStatus" class="status"></div><section id="localGrid" class="grid"></section></section>
     </main>
     <script>
         function stripHtml(value) { const element = document.createElement('div'); element.innerHTML = value || ''; return element.textContent || ''; }
@@ -76,7 +77,7 @@
                 const result = await response.json();
                 const items = (search ? result.map(item => item.show) : result).slice(0, 18);
                 status.textContent = `${items.length} media ditemukan`;
-                grid.innerHTML = items.length ? items.map(media => `<article class="card"><img class="poster" src="${escapeHtml(media.image?.medium || '')}" alt="Poster ${escapeHtml(media.name)}" onerror="this.style.display='none'"><div class="type">${escapeHtml(media.type || 'show')}</div><h2>${escapeHtml(media.name)}</h2><div class="meta">${escapeHtml((media.genres || []).join(' · ') || 'Genre belum tersedia')} · ${escapeHtml(media.premiered || 'Tahun tidak tersedia')}</div><p class="summary">${escapeHtml(stripHtml(media.summary)) || 'Sinopsis belum tersedia.'}</p><div class="actions"><a href="${escapeHtml(media.url)}" target="_blank" rel="noreferrer"><button>Detail</button></a></div></article>`).join('') : '<div class="empty">Media tidak ditemukan.</div>';
+                grid.innerHTML = items.length ? items.map(media => `<article class="card"><img class="poster" src="${escapeHtml(media.image?.medium || '')}" alt="Poster ${escapeHtml(media.name)}" onerror="this.style.display='none'"><div class="type">${escapeHtml(media.type || 'show')}</div><h2>${escapeHtml(media.name)}</h2><div class="meta">${escapeHtml((media.genres || []).join(' · ') || 'Genre belum tersedia')} · ${escapeHtml(media.premiered || 'Tahun tidak tersedia')}</div><p class="summary">${escapeHtml(stripHtml(media.summary)) || 'Sinopsis belum tersedia.'}</p><div class="actions"><button onclick="saveExternalMedia('${encodeURIComponent(JSON.stringify({title: media.name, type: media.type || 'show', genre: (media.genres || [])[0] || 'other', release_year: media.premiered ? Number(media.premiered.slice(0, 4)) : null, description: stripHtml(media.summary)}))}')">Simpan ke FlipPlay</button><a href="${escapeHtml(media.url)}" target="_blank" rel="noreferrer"><button class="secondary">Detail</button></a></div></article>`).join('') : '<div class="empty">Media tidak ditemukan.</div>';
             } catch (error) { status.textContent = 'Katalog internet tidak dapat dimuat. Periksa koneksi internet.'; grid.innerHTML = ''; }
         }
         document.getElementById('searchButton').addEventListener('click', loadMedia);
@@ -87,14 +88,17 @@
             const payload = { title: title.value, type: type.value, genre: genre.value };
             const response = await fetch(editingId ? `/api/media/${editingId}` : '/api/media', { method: editingId ? 'PATCH' : 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify(payload) });
             if (!response.ok) { alert('Data tidak valid atau judul sudah digunakan.'); return; }
-            editingId = null; event.target.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; loadMedia();
+            editingId = null; event.target.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; loadLocalMedia();
         });
+        window.saveExternalMedia = async encodedMedia => { const media = JSON.parse(decodeURIComponent(encodedMedia)); const response = await fetch('/api/media', {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify(media)}); alert(response.status === 422 ? 'Media sudah tersimpan atau data tidak valid.' : response.ok ? 'Media berhasil disimpan ke API Laravel.' : 'Gagal menyimpan media.'); if (response.ok) loadLocalMedia(); };
+        async function loadLocalMedia() { const response = await fetch('/api/media'); const result = await response.json(); const items = result.data || []; localStatus.textContent = `${items.length} media tersimpan`; localGrid.innerHTML = items.length ? items.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div><div class="actions"><button onclick="editMedia(${media.id}, '${media.title.replace(/'/g, "\\'")}', '${media.type}', '${media.genre}')">Edit</button><button class="secondary" onclick="deleteMedia(${media.id})">Hapus</button><button class="secondary" onclick="addToCollection(${media.id})">+ Koleksi</button></div></article>`).join('') : '<div class="empty">Simpan media dari deksripsi TVMaze di atas.</div>'; }
         window.editMedia = (id, currentTitle, currentType, currentGenre) => { editingId = id; title.value = currentTitle; type.value = currentType; genre.value = currentGenre; formTitle.textContent = 'Edit media'; cancelEdit.hidden = false; window.scrollTo({top: 0, behavior: 'smooth'}); };
-        window.deleteMedia = async id => { if (!confirm('Hapus media ini?')) return; await fetch(`/api/media/${id}`, {method: 'DELETE', headers: {'Accept': 'application/json'}}); loadMedia(); };
+        window.deleteMedia = async id => { if (!confirm('Hapus media ini dari API Laravel?')) return; await fetch(`/api/media/${id}`, {method: 'DELETE', headers: {'Accept': 'application/json'}}); loadLocalMedia(); };
         window.addToCollection = async mediaId => { const id = userId.value; if (!id) { alert('Isi ID pengguna terlebih dahulu.'); return; } const response = await fetch(`/api/users/${id}/collection`, {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify({media_id: mediaId})}); alert(response.status === 409 ? 'Media sudah ada di koleksi.' : response.ok ? 'Media ditambahkan ke koleksi.' : 'User atau media tidak ditemukan.'); };
         cancelEdit.addEventListener('click', () => { editingId = null; mediaForm.reset(); formTitle.textContent = 'Tambah media'; cancelEdit.hidden = true; });
         collectionButton.addEventListener('click', async () => { const id = userId.value; if (!id) return; const response = await fetch(`/api/users/${id}/collection`); const result = await response.json(); collectionStatus.textContent = response.ok ? `${result.data.length} media dalam koleksi` : 'User tidak ditemukan'; collectionGrid.innerHTML = response.ok ? result.data.map(media => `<article class="card"><div class="type">${media.type}</div><h2>${media.title}</h2><div class="meta">${media.genre}</div></article>`).join('') : ''; });
         loadMedia();
+        loadLocalMedia();
     </script>
 </body>
 </html>
